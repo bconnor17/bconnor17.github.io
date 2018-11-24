@@ -1,5 +1,5 @@
 ---
-title: "about brian"
+title: "About Me"
 author: "Brian J. Connor"
 date: "November 24, 2018"
 output: html_document
@@ -9,6 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## About Me
+Hi! My name is Brian Connor, and I am a graduate student at the University of Pennsylvania. In a sentence, I would describe myself as a creative and analytical professional strongly interested in the mechanics of data-driven decision making in the fields of politics, policy, and business strategy.
 
-Hi! My name is Brian Connor, and I am a graduate student at the University of Pennsylvania.
+Currently, I am pursuing my master's degree in [Behavioral and Decision Sciences](https://www.sas.upenn.edu/lps/graduate/mbds). I hope to use insights from this program to incorporate realistic expectations about human behavior into my future modeling work. I am also a proud alumnus of [The College of New Jersey](https://business.tcnj.edu/), where I graduated in May 2017 with a B.S. in Economics. During the day, I work full-time as a Financial Analyst in the Division of Recreation and Intercollegiate Athletics at Penn.
+
+Outside of the classroom and office, I remain highly interested and involved in politics. During the 2018 cycle, I volunteered as a data analyst for Mikie Sherrill's victorious [congressional campaign](https://mikiesherrill.com/). In this role, I collaborated with staffers to organize and analyze internal and public campaign finance data, using my quantitative skills to draw actionable inferences. During my final semester of college, I interned in [Senator Cory Booker's](https://www.booker.senate.gov/) Newark office. In Senator Booker's office, I communicated with constituents in order to explain the Senator's stances, sponsored bills, public statements, and votes.I also researched and wrote briefs and memos for state director and other staff members. During the spring of 2017, I also volunteered as a campus organizer for [Governor Phil Murphy's](https://www.murphy4nj.com/) successful inaugural run.
+
+If you're interested in working together, please don't hesitate to send me an email at brianjconnor17 (at) gmail (dot) com.
