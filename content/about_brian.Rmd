@@ -1,0 +1,14 @@
+---
+title: "about brian"
+author: "Brian J. Connor"
+date: "November 24, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## About Me
+
+Hi! My name is Brian Connor, and I am a graduate student at the University of Pennsylvania.
