@@ -1,0 +1,12 @@
+---
+title: "Projects"
+author: "Brian J. Connor"
+date: "November 25, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This page will contain projects that I'm working on.
