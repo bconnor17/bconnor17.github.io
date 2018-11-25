@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Hi! My name is Brian Connor, and I am a graduate student at the University of Pennsylvania. In a sentence, I would describe myself as a creative and analytical professional strongly interested in the mechanics of data-driven decision making in the fields of politics, policy, and business strategy.
+Hi! My name is Brian Connor, and I am a graduate student at the University of Pennsylvania. I'm a creative professional with a strong interest in the mechanics of data-driven decision making, specifically within the fields of politics, policy, and business strategy.
 
 Currently, I am pursuing my master's degree in [Behavioral and Decision Sciences](https://www.sas.upenn.edu/lps/graduate/mbds). I hope to use insights from this program to incorporate realistic expectations about human behavior into my future modeling work. I am also a proud alumnus of [The College of New Jersey](https://business.tcnj.edu/), where I graduated in May 2017 with a B.S. in Economics. During the day, I work full-time as a Financial Analyst in the Division of Recreation and Intercollegiate Athletics at Penn.
 
