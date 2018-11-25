@@ -39,5 +39,23 @@ When you click the Knit button a document will be generated that includes both c
       <description>Hi! My name is Brian Connor, and I’m an MBDS candidate at the University of Pennsylvania. I hope to use insights from this program to incorporate realistic expectations about human behavior into my future quantitative work. I am also a proud alumnus of The College of New Jersey, where I graduated in May 2017 with a B.S. in Economics. During the day, I work full-time as a Financial Analyst in the Division of Recreation and Intercollegiate Athletics at Penn.</description>
     </item>
     
+    <item>
+      <title>My Projects</title>
+      <link>/my_projects/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/my_projects/</guid>
+      <description>This page will contain projects that I am working on.</description>
+    </item>
+    
+    <item>
+      <title>Projects</title>
+      <link>/projects/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/projects/</guid>
+      <description>This page will contain projects that I’m working on.</description>
+    </item>
+    
   </channel>
 </rss>
