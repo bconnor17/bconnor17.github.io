@@ -1,6 +1,450 @@
 ---
-title: "Campaign Finance Project"
+title: "An Econometric Approach to Campaign Finance in the 21st Century"
 author: "Brian J. Connor"
-date: "December 16, 2018"
+date: "December 8, 2018"
 output: html_document
+bibliography: finalbibliography.bib
+nocite: '@*'
 ---
+
+```{r setup, include=FALSE}
+setwd("~/Penn MBDS/Fall 2018/BDS 522/Research Project")
+
+library(plyr)
+library(dplyr)
+library(lme4)
+library(ggplot2)
+library(tidyr)
+library(stargazer)
+library(kableExtra)
+library(DT)
+library(plotly)
+
+FECData <- read.csv("FEC Dataset Import 5.csv", stringsAsFactors = TRUE)
+
+#Generic Ballot Import
+GenBallot <- read.csv("Generic Ballot (DataCamp).csv")
+
+GenBall30D <- GenBallot %>%
+  group_by(Cycle) %>%
+  filter(DaysTilED <= 30)
+
+GenBall30DAvg <- GenBall30D %>%
+  mutate(DemShare = DemVote/(DemVote + RepVote)) %>%
+  group_by(Cycle) %>%
+  summarise(MeanDemShareGenBall = mean(DemShare))
+
+FECData2 <- merge(FECData, GenBall30DAvg, by = "Cycle",all.x = TRUE) %>%
+  mutate(DistYear = paste(StateDistrict,Cycle))
+
+FECData2 <- FECData2 %>%
+  mutate(CandDistYear = paste(FEC_ID,DistYear))
+
+FECData2 <- FECData2 %>%
+  mutate(ShareofSpend = TotDisb/TotDistDisb)%>%
+  mutate(Gen_Vote_Pct = Gen_Votes/TotDistVotes)
+
+FECData2 <- FECData2 %>%
+  mutate(TotDisbM = TotDisb/1000000,
+         TotDistDisbM = TotDistDisb/1000000,
+         OthDistDisbM = TotDistDisbM - TotDisbM,
+         LogVotes = log(Gen_Votes),
+         LogTotDisb = log(TotDisb),
+         RelativeSpend = TotDisbM/OthDistDisbM,
+         CycleStateDistrict = paste(Cycle,StateDistrict))
+
+FECData2Trim <-  filter(FECData2, TotDisbM < mean(TotDisbM)+ 1.5*IQR(TotDisbM))
+
+FECData2TrimLow <- FECData2 %>% filter(LogVotes > mean(LogVotes) - 1.5*IQR(LogVotes)) %>%
+  filter(LogTotDisb > mean(LogTotDisb) - 1.5*IQR(LogTotDisb))
+
+#Prior Dem Share
+DemShare <- FECData2 %>%
+  select(Cycle, StateDistrict,Party,Gen_Vote_Pct) %>%
+  mutate(RealTimeCycleStateDistrict = paste(Cycle,StateDistrict)) %>%
+  filter(Party == 0) %>%
+  mutate(Cycle2 = Cycle + 2) %>%
+  mutate(DemSharePrior = Gen_Vote_Pct) %>%
+  mutate(CycleStateDistrict = paste(Cycle2,StateDistrict)) %>%
+  group_by(CycleStateDistrict) %>%
+  summarise(DemSharePrior = sum(DemSharePrior))
+
+FECData3 <- FECData2 %>%
+  filter(Cycle != 2004)%>%
+  mutate(NumericCycle = as.numeric(Cycle))
+
+FECData3 <- merge(FECData3,DemShare,by = "CycleStateDistrict", all.x = TRUE)
+
+FECData3 <- FECData3 %>%
+  mutate(PostCitizensUnited = if_else(NumericCycle>2010,1,0))
+
+FECData3$DemSharePrior <- replace_na(FECData3$DemSharePrior,0)
+
+FECData3$Cycle <- as.factor(FECData3$Cycle)
+
+FECData3Trim <-  filter(FECData3, TotDisbM < mean(TotDisbM)+ 1.5*IQR(TotDisbM))
+
+FECData3TrimLow <- FECData3 %>% filter(LogVotes > mean(LogVotes) - 1.5*IQR(LogVotes)) %>%
+  filter(LogTotDisb > mean(LogTotDisb) - 1.5*IQR(LogTotDisb))
+
+#Vote models
+VoteModel1 <- lmer(Gen_Votes ~ TotDisbM*factor(Incumbent) + MeanDemShareGenBall*factor(Party) +
+                     (1|Cycle) + (1|StateDistrict), data=  FECData3)  
+
+VoteModel2 <- lmer(Gen_Votes ~ TotDisbM*factor(Incumbent) + MeanDemShareGenBall*factor(Party) + OthDistDisbM +
+                     (1|Cycle) + (1|StateDistrict), data=  FECData3)  
+
+VoteModel3 <- lmer(Gen_Votes ~ TotDisbM*factor(Incumbent) + MeanDemShareGenBall*factor(Party) + OthDistDisbM + factor(PartyInPres) + factor(Party)*DemSharePrior +  (1|Cycle) + (1|StateDistrict), data=  FECData3)  
+
+VoteModel4 <- lmer(Gen_Votes ~ TotDisbM*factor(Incumbent) + MeanDemShareGenBall*factor(Party) + OthDistDisbM + 
+                    factor(PostCitizensUnited) + factor(Party)*DemSharePrior +  (1|Cycle) + (1|StateDistrict), data=  FECData3)
+
+VoteModel5 <- lmer(Gen_Votes ~ TotDisbM*factor(Incumbent) + MeanDemShareGenBall*factor(Party) + OthDistDisbM + factor(PartyInPres) +
+                     factor(Party)*DemSharePrior +  (1|Cycle) + (1|StateDistrict), data=  FECData3)
+
+#Spending Share Models
+
+SpendingShareModel1 <- lmer(Gen_Votes ~ ShareofSpend*factor(Incumbent) + MeanDemShareGenBall*factor(Party) + TotDistDisbM +
+                              (1|Cycle) + (1|StateDistrict), data = FECData2)
+
+SpendingShareModel2 <- lmer(Gen_Vote_Pct ~ ShareofSpend*factor(Incumbent) + MeanDemShareGenBall*factor(Party) + TotDistDisbM +
+                              (1|Cycle) + (1|StateDistrict), data = FECData2)
+
+SpendingShareModel3 <- lmer(Gen_Vote_Pct ~ ShareofSpend*factor(Incumbent) + MeanDemShareGenBall*factor(Party) + TotDistDisbM +
+                              PresYear*PartyInPres + (1|Cycle) + (1|StateDistrict), data = FECData2)
+
+SpendingShareModel4 <- lmer(Gen_Vote_Pct ~ ShareofSpend*factor(Incumbent) + MeanDemShareGenBall*factor(Party) +
+                              (1|Cycle) + (1|StateDistrict), data = FECData2)
+
+SpendingShareModel5 <- lmer(Gen_Vote_Pct ~ ShareofSpend*factor(Incumbent) + MeanDemShareGenBall*factor(Party) + OthDistDisbM +
+                              (1|Cycle) + (1|StateDistrict), data = FECData3)
+
+SpendingShareModel6 <- lmer(Gen_Vote_Pct ~ ShareofSpend*factor(Incumbent) + MeanDemShareGenBall*factor(Party) + OthDistDisbM + factor(PartyInPres)+
+                              factor(Party)*DemSharePrior + (1|Cycle) + (1|StateDistrict), data = FECData3)
+
+SpendingShareModel7 <- lmer(Gen_Vote_Pct ~ ShareofSpend*factor(Incumbent) + MeanDemShareGenBall*factor(Party) +
+                              (1|Cycle) + (1|StateDistrict), data = FECData3)
+
+SpendingShareModel8 <- lmer(Gen_Vote_Pct ~ ShareofSpend*factor(Incumbent) + MeanDemShareGenBall*factor(Party) + OthDistDisbM +
+                             factor(PostCitizensUnited) + factor(Party)*DemSharePrior + (1|Cycle) + (1|StateDistrict), data = FECData3)
+
+SpendingShareModel9 <- lmer(Gen_Vote_Pct ~ ShareofSpend*factor(Incumbent) + MeanDemShareGenBall*factor(Party) + OthDistDisbM +
+                              factor(PostCitizensUnited)*factor(Party) + factor(Party)*DemSharePrior + (1|Cycle) + (1|StateDistrict), data = FECData3)
+
+SpendingShareModel10 <- lmer(Gen_Vote_Pct ~ ShareofSpend*factor(Incumbent) + MeanDemShareGenBall*factor(Party) + OthDistDisbM +
+                              ShareofSpend*factor(PostCitizensUnited) + factor(Party)*DemSharePrior + (1|Cycle) + (1|StateDistrict), data = FECData3)
+
+VoteRegressions <- stargazer(VoteModel1,VoteModel2, VoteModel3, type = "html", out = "voteregressions.htm")
+SpendingShareRegressions <- stargazer(SpendingShareModel7, SpendingShareModel5, SpendingShareModel6, type = "html", out = "spendingshareregressions.htm")
+
+#Plots
+#Spending as Pct of Total District Spending
+RelativeSpending <- ggplot(FECData3, aes(x = ShareofSpend, y = Gen_Votes)) +
+  geom_point(aes(color = factor(Winner)))+
+  geom_smooth()+
+  ggtitle("Votes Won vs. Candidate Spending as Percentage of Total Spending in District")+
+  labs(y= "Votes Won", x = "Candidate Spending as Percentage of Total Spending In District")
+
+VoteShareRelativeSpending <- ggplot(FECData3, aes(x = ShareofSpend, y = Gen_Vote_Pct)) +
+  geom_point(aes(color = factor(Winner)))+
+  geom_smooth(method = "lm")+
+  ggtitle("Vote Share vs. Candidate Spending as Percentage of Total Spending in District")+
+  labs(y= "Share of Popular Vote", x = "Candidate Spending as Percentage of Total Spending In District")
+
+TotalColoredbyWinner <- ggplot(FECData3Trim, aes(x = TotDisb, y = Gen_Votes)) +
+  geom_point(aes(color = factor(Winner)))+
+  geom_smooth(method = "loess")+
+  ggtitle("Campaign Spending and Votes Won in General Election")+
+  labs(y= "Votes Won", x = "Total Dollars Spent")
+
+#Overall Plot Broken Out by Cycle
+PlotBrokenByCycle <- ggplot(FECData3Trim, aes(x = TotDisb, y = Gen_Votes)) +
+  geom_point(aes(color=factor(Winner)))+
+  geom_smooth(method = "loess")+
+  facet_wrap(~Cycle)+
+  ggtitle("Campaign Spending and Votes Won in General Election")+
+  labs(y= "Votes Won", x = "Total Dollars Spent")
+
+#Overall Plot Broken Out by Incumbent
+PlotBrokenByIncumbent <- ggplot(FECData3Trim, aes(x = TotDisb, y = Gen_Votes)) +
+  geom_point(aes(color=factor(Winner)))+
+  geom_smooth(method = "loess")+
+  facet_wrap(~Incumbent)+
+  ggtitle("Campaign Spending and Votes Won in General Election")+
+  labs(y= "Votes Won", x = "Total Dollars Spent")
+
+#Citizens United Analysis
+FECData3PreCU <- FECData3 %>%
+  filter(NumericCycle < 2012)
+
+FECData3PostCU <- FECData3 %>%
+  filter(NumericCycle >= 2012)
+
+VoteModel2PreCU <- lmer(Gen_Votes ~ TotDisbM*factor(Incumbent) + MeanDemShareGenBall*factor(Party) + OthDistDisbM +
+                          Party*DemSharePrior + (1|Cycle) + (1|StateDistrict), data=  FECData3PreCU)
+
+VoteModel2PostCU <- lmer(Gen_Votes ~ TotDisbM*factor(Incumbent) + MeanDemShareGenBall*factor(Party) + OthDistDisbM +
+                          Party*DemSharePrior + (1|Cycle) + (1|StateDistrict), data=  FECData3PostCU)
+
+summary(VoteModel2PreCU)
+summary(VoteModel2PostCU)
+
+#Difference in Tot Disb Z test (Pre- and Post- Citizens United)
+DiffTotDisbCUZ <- (17518.9-18900.5)/(sqrt((836.3)^2 + (901.3)^2))
+
+dnorm(DiffTotDisbCUZ, mean = 0, sd = 1)
+
+#Difference in Tot Disb Z test (Pre- and Post- Citizens United)
+SpendingShareModel6PreCU <- lmer(Gen_Vote_Pct ~ ShareofSpend*factor(Incumbent) + MeanDemShareGenBall*factor(Party) + OthDistDisbM +
+                              factor(Party)*DemSharePrior + (1|Cycle) + (1|StateDistrict), data = FECData3PreCU)
+
+SpendingShareModel6PostCU <- lmer(Gen_Vote_Pct ~ ShareofSpend*factor(Incumbent) + MeanDemShareGenBall*factor(Party) + OthDistDisbM +
+                              factor(Party)*DemSharePrior + (1|Cycle) + (1|StateDistrict), data = FECData3PostCU)
+
+summary(SpendingShareModel6PreCU)
+summary(SpendingShareModel6PostCU)
+
+
+SpendShareDiffTotDisbCUZ <- (0.3436883-0.3080393)/(sqrt((0.0125675)^2 + (0.0107941)^2))
+
+dnorm(SpendShareDiffTotDisbCUZ, mean = 0, sd = 1)
+
+#Summary Table
+FECData32006 <- filter(FECData3, Cycle == 2006)
+FECData32008 <- filter(FECData3, Cycle == 2008)
+FECData32010 <- filter(FECData3, Cycle == 2010)
+FECData32012 <- filter(FECData3, Cycle == 2012)
+FECData32014 <- filter(FECData3, Cycle == 2014)
+FECData32016 <- filter(FECData3, Cycle == 2016)
+
+SummaryOverall <- FECData3 %>%
+  group_by(Cycle) %>%
+  summarise(N = length(which(Incumbent == 0|1)),
+            Dem = length(which(PartyName == 0)),
+            Rep = length(which(Party == 1)),
+            Lib = length(which(Party == 2)),
+            Grn = length(which(Party == 3)),
+            Oth = length(which(Party == 4)),
+            Inc = length(which(Incumbent == 1)),
+                         NonInc = length(which(Incumbent == 0)),
+                         AvgDisb = mean(TotDisb),
+                         MedDisb = median(TotDisb),
+                         AvgVotes = mean(Gen_Votes),
+                         MedVotes = median(Gen_Votes),
+                         GenBall30Avg = mean(MeanDemShareGenBall))
+
+SummaryParty <- FECData3 %>%
+  group_by(Cycle,PartyName) %>%
+  summarise(N = length(which(Incumbent == 0|1)),
+            Wins = length(which(Winner == 1)),
+            Losses = length(which(Winner == 0)),
+            Inc = length(which(Incumbent == 1)),
+            NonInc = length(which(Incumbent == 0)),
+            AvgDisb = mean(TotDisb),
+            MedDisb = median(TotDisb),
+            AvgVotes = mean(Gen_Votes),
+            MedVotes = median(Gen_Votes))
+
+SummaryOverall <- as.data.frame(SummaryOverall)
+SummaryParty <- as.data.frame(SummaryParty)
+
+SummaryOverall$AvgDisb <- round(SummaryOverall$AvgDisb, 2)
+SummaryOverall$MedDisb <- round(SummaryOverall$MedDisb, 2)
+SummaryOverall$AvgVotes <- round(SummaryOverall$AvgVotes, 2)
+SummaryOverall$MedVotes <- round(SummaryOverall$MedVotes, 2)
+SummaryOverall$GenBall30Avg <- round(SummaryOverall$GenBall30Avg,4)
+
+SummaryParty$AvgDisb <- round(SummaryParty$AvgDisb, 2)
+SummaryParty$MedDisb <- round(SummaryParty$MedDisb, 2)
+SummaryParty$AvgVotes <- round(SummaryParty$AvgVotes, 2)
+SummaryParty$MedVotes <- round(SummaryParty$MedVotes, 2)
+
+colnames(SummaryOverall) <- c("Cycle","Number of Candidates", "Democratic","Republican","Libertarian","Green","Other",
+                              "Incumbent","Non-Incumbent","Average Disbursements","Median Disbursements","Average Votes",
+                              "Median Votes","30 Day Generic Ballot Average (Dem. Share)")
+
+colnames(SummaryParty) <- c("Cycle", "Party Name", "Number of Candidates","Wins","Losses","Incumbent","Non-Incumbent",
+                            "Average Disbursements","Median Disbusements","Average Votes","Median Votes")
+
+
+```
+
+#Motivation
+
+  Over the past twenty years, political campaign expenditures in the United States have skyrocketed. In 1998, these expenditures amounted to $1.6 billion. In 2018, this number is projected to hit $5.2 billion (Center for Responsive Politics). This effect is often credited to the controversial 2010 Citizens United decision, which effectively prohibited the United States government from restricting independent expenditures for political communications. However, this upward trend in expenditures began long before 2010. Importantly, we can infer from this pattern that political professionals see a direct causal relationship between campaign expenditures and electoral outcomes.
+  
+Many prior studies of campaign spending are limited in scope, and often concern elections in the 1970s and 1980s. Additionally, the preponderance of existing scholarship focuses mainly on the effects of incumbency. In this study, I examine the shape and the form of the relationship between campaign expenditures and campaign efficacy with several sets of controls in place. I use a comprehensive set of data encompassing all House of Representatives elections between 2006 and 2016.
+
+I look to develop a comprehensive picture of campaign spending in the 21st century through two main avenues. First, I analyze the overall relationship between spending and voting as denominated in dollars and votes. Second, I examine competitive dynamics within districts through the analysis of candidate spending share, which is defined as the candidate's spending divided by all spending by candidates in the district. In this branch of my analysis, I compare spending share to vote share.
+
+#Literature Review
+
+The first body of scholarship consulted was the literature surrounding the relationship between campaign spending and electoral outcomes. This work has mainly focused on the effects of incumbency. In 1978, Gary Jacobson established that the marginal utility of campaign spending is different for incumbents than it is for challengers. Challengers often begin their campaigns in relative obscurity and can quickly boost their public profiles through high levels of campaign spending. Incumbents, on the other hand, can leverage their established political networks and extensive communication resources to develop name recognition and support outside of the formal campaign spending process. In 1985, Jacobson argues that "no matter how the data are analyzed, no matter what view one takes of the simultaneity problem, one finding remains undisturbed: incumbents gain nothing in the way of votes by spending money in campaigns."
+
+This conclusion has been debated extensively. In their 1988 paper, Green and Krasno argue that Jacobson failed to control for challenger quality, pertinent interaction effects, and reciprocal causation. Green and Krasno incorporate prior incumbent spending as an exogenous variable to identify the incumbent's general propensity to spend. Green and Krasno arrive at the conclusion that incumbents can readily affect their vote share by spending on the margin. In 1990, Jacobson responded, claiming that Green and Krasno's model incorporates a high degree of multicollinearity, as their prior incumbent spending instrument correlates highly with the challenger political quality and expenditure variables in the model. Jacobson argues that the instrument for incumbent spending "is, in part, a proxy for party strength and challenger quality." One goal of my study is to re-examine this debate in the context of the modern campaign finance landscape.
+	
+I also rely on scholarship surrounding election forecasting. In 2014, Patrick Hummel and David Rothschild explored the usage of econometric modeling to forecast campaign outcomes. Specifically, they focus on presidential, gubernatorial, and senatorial races. Hummel and Rothschild use presidential approval ratings, incumbency, past election results, economic factors, and state ideology to predict electoral outcomes. They find that past election results, incumbency, and state-level economic factors can be used to predict electoral outcomes with a high degree of statistical significance. Consequently, I use both past election results and incumbency in my models. I exclude economic factors for two reasons. First, I was unable to acquire district-level personal income data in the timeframe of this project. Second, I follow the example of FiveThirtyEight's 2018 House forecast, which did not include economic factors. Indirectly, voters' economic attitudes and opinions are incorporated into the model through generic ballot polling. In my model, cycle-level fixed effects also likely pick up some of this noise. 
+
+Based on FiveThirtyEight's usage of generic ballot polling, I decided to include a generic ballot measure in my models. I use a variation of the technique described by Joseph Bafumi, Robert S. Erikson, and Christopher Wlezien in their 2008 paper, in which they average all generic ballot polls over the last 30 days of a given campaign, converting all polls to a percent Democratic of the two-party vote. For instance, 50-42 converts to 54.3% Democratic. I interact this variable with a factor variable for political party to capture the obvious differences in the ways that Democrat-favorable polling affects candidates of different parties.
+
+
+#Data, Hypotheses, and Methods
+
+##Data
+
+I use publicly available Federal Election Commission and generic ballot data for this study. The FEC data was downloaded directly from the FEC's official website. The generic ballot data was downloaded from the Analyzing Polling and Election Data in R course on DataCamp and was initially compiled by G. Elliot Morris of The Economist.
+	The initial candidate and disbursement dataset consisted of all candidates for the United States House of Representatives in elections between 2004 and 2016. Some exclusions were made. All candidates without vote counts or disbursement numbers were removed. Additionally, all candidates for office in United States territories were excluded, as these officials cannot vote on the House floor. There were also several duplicate records for individual candidates within the initial dataset. These were condensed or removed as necessary.
+	
+In his 1991 study of incumbency and campaign spending, Alan Abramowitz included a variable for district partisanship. In this case, the variable described how the district voted in the previous presidential election. District-level presidential election data for the timeframe of my study exists but is not freely available. In future extensions of this study, I will attempt to procure this data. In the meantime, I chose to include a Previous Democratic Share variable, which shows the Democratic candidate's share of the district vote in the previous election. The inclusion of this variable necessitated dropping all 2004 data from these analyses.
+
+In all, 5059 observations were included in the final analyses. Two detailed breakdowns of this data can be found below.
+
+```{r echo = FALSE, results = "asis", fig.align="center"}
+
+datatable(SummaryOverall, class = 'cell-border stripe', options = list(dom = "t"), rownames = FALSE,
+          caption = "Table 1: Data Summary by Cycle")
+
+```
+
+In the first table, the data are broken out by cycle and summarized into relevant spending and electoral outcome statistics. We see that the average and median candidate's votes are highest in presidential election years, which makes intuitive sense given the well-documented trend of higher voter turnout in presidential years. On the disbursement side, we see that both median and average disbursements remained relatively consistent between 2006 and 2016. This consistency is present even in presidential years. Finally, we see that candidates of the opposition party tend to poll well, as Democrats held a generic ballot advantage in 2006 and 2008, and Republicans held an advantage in all Obama-era elections outside of 2012. 
+
+The second table shows the data broken down by both party and cycle
+
+```{r echo = FALSE, results = "asis", fig.align="center"}
+
+datatable(SummaryParty, class = 'cell-border stripe', filter = "bottom", rownames = FALSE,
+          caption = "Table 2: Data Summary by Party and Cycle")
+
+```
+
+In the second table, the data are further broken out by party, to show spending and outcome differences within cycles and between parties. There are some slight discrepancies from officially published election results here, mainly due to the analytically problematic observations deleted during the data cleaning. I continue to work through the data set to identify all potential inaccuracies. We see in this table that Republicans tend to outspend Democrats. For Democrats and Republicans, we also see that average vote and disbursement numbers tend to be higher than their respective medians, indicating a rightward skew.
+
+##Hypotheses
+Based on the literature reviewed, I test three hypotheses. The first two are outlined below, and serve to analyze Jacobson, Green, and Krasno's work in the context of the modern campaign finance landscape.
+
+H1: With respect to campaign expenditures, both win probability and votes won will increase at a decreasing rate. That is, I predict a diminishing marginal utility of campaign expenditures. 
+
+H2: The shape and form of this relationship, and consequently the point of zero marginal utility will change depending on the affiliation of the candidate, partisan makeup of the district, the national political climate, and challenger or incumbent status of the candidate.
+
+The third hypothesis relies on a different conception of the relationship between spending and votes. Specifically, I look to analyze the relationship between spending share and vote share. To my knowledge, this specific analysis has not been performed. Spending share is defined here as a candidate's spending divided by the total spending of all candidates in that specific race.
+
+H3: Share of spending will correlate positively with vote share, but the shape of this relationship will be different than in H1. This is because opponent spending and vote share is more effectively controlled for within this design.
+
+##Methods
+I test all three of these hypotheses with linear regression. My linear regressions incorporate fixed effects at the cycle and district level. This means that different intercept terms are generated based on each election's location and year. Theoretically, these fixed effects should control for time-invariant differences between districts and location-invariant differences between years. In future extensions of this inquiry I plan on generating random effects, interacting specific independent variables with district and cycle to further control for differences between districts and years.
+
+I run three regressions analyzing the relationship between dollars spent and votes won, and I also run three regressions analyzing the relationship between share of spending and share of votes won. The third and final regression of each of these series is the most complete and is primarily used in my analyses.
+
+The equations for the two critical regressions are shown below. TotDisbM refers to candidate disbursements denominated in millions of dollars. ShareofSpend refers to a candidate's share of spending. The incumbent variable is a dummy variable, with incumbents assigned the value of 1. MeanDemShareGenBallot is the mean Democratic share of all generic ballot polls conducted within 30 days of the election. Party is a five-level factor variable, with 0 representing Democrats, 1 representing Republicans, 2 representing Libertarians, 3 representing Green Party members, and 4 representing all other and independent candidates. OthDistDisbM refers to the sum of spending by other candidates competing in the race in question. PartyInPres is a dummy variable, with the value 1 being assigned to candidates in the same party as the sitting president. DemSharePrior refers to the vote share won by the Democratic candidate in the prior House election in the district in question. 
+
+
+### Dollars Spent-Votes Won Regression
+
+$Votes Won = \beta_0 + \beta_{1} TotDisb + \beta_{2}Incumbent + \beta_{3}MeanDemShareGenBall + \beta_{4}Republican + \beta_{5}Libertarian + \beta_{6}Green + \beta_{7}Other$
+$+ \beta_{8}OthDistDisbM +\beta_{9}PartyinPres +  \beta_{10}DemSharePrior + \beta_{11}TotDisbM*Incumbent + \beta_{12}MeanDemShareGenBall*Republican$
+$+ \beta_{13}MeanDemShareGenBall*Libertarian + \beta_{14}MeanDemShareGenBall*Green + \beta_{15}MeanDemShareGenBall*Other$
+$+ \beta_{16}DemSharePrior*Republican + \beta_{17}DemSharePrior*Libertarian + \beta_{18}DemSharePrior*Green + \beta_{19}DemSharePrior*Other$  
+
+
+### Spending Share-Vote Share Regression 
+
+$Vote Share = \beta_0 + \beta_{1} ShareofSpend + \beta_{2}Incumbent + \beta_{3}MeanDemShareGenBall + \beta_{4}Republican + \beta_{5}Libertarian + \beta_{6}Green + \beta_{7}Other$
+$+ \beta_{8}OthDistDisbM +\beta_{9}PartyinPres +  \beta_{10}DemSharePrior + \beta_{11}TotDisbM*Incumbent + \beta_{12}MeanDemShareGenBall*Republican$
+$+ \beta_{13}MeanDemShareGenBall*Libertarian + \beta_{14}MeanDemShareGenBall*Green + \beta_{15}MeanDemShareGenBall*Other$
+$+ \beta_{16}DemSharePrior*Republican + \beta_{17}DemSharePrior*Libertarian + \beta_{18}DemSharePrior*Green + \beta_{19}DemSharePrior*Other$ 
+
+#Results
+
+##Dollars and Votes
+
+In the following three charts, a reduced dataset is used. This dataset eliminates spending outliers to show a clearer picture of the relationships depicted. The fitted lines should not be affected, as they are fitted by locally estimated scatterplot smoothing models. 
+
+In the first figure, we see the relationship between dollars spent and votes won. Clearly, this chart represents a severely declining marginal utility of campaign spending with respect to votes won. Although there are no controls in place here, the basic inference could be made that campaign spending past the $1 million mark may be irrational. 
+
+
+```{r echo= FALSE, fig.align = "center"}
+TotalColoredbyWinner <- ggplot(FECData3Trim, aes(x = TotDisb, y = Gen_Votes)) +
+  geom_point(aes(color = factor(Winner)), size = 1)+
+  geom_smooth(method = "loess")+
+  ggtitle("Campaign Spending and Votes Won in General Election")+
+  labs(y= "Votes Won", x = "Total Dollars Spent")
+TotalColoredbyWinner
+```
+
+Below, I break out this relationship by cycle. Two trends jump out here. First, we see that the fitted line moves upward in presidential years. This makes intuitive sense. Presidential elections generally boast higher turnout than midterm elections. With a higher expected vote count, each dollar spent in presidential years corresponds to more votes won than each dollar spent in midterm elections. The second key takeaway here is that the plateau point is roughly the same in all years. In other words, the marginal utility of campaign spending approaches zero at roughly the same spending point in all six elections.
+
+```{r echo = FALSE, fig.align="center"}
+PlotBrokenByCycle <- ggplot(FECData3Trim, aes(x = TotDisb, y = Gen_Votes)) +
+  geom_point(aes(color=factor(Winner)), size= 1)+
+  geom_smooth(method = "loess")+
+  facet_wrap(~Cycle)+
+  ggtitle("Campaign Spending and Votes Won in General Election")+
+  labs(y= "Votes Won", x = "Total Dollars Spent")
+PlotBrokenByCycle
+```
+
+Finally, I separate non-incumbent candidates from incumbent candidates below. These data confirm Jacobson's 1978 conclusion that the relationship between campaign spending and votes won behaves differently for incumbents than it does for non-incumbents. More specifically, two conclusions can be made here. First, incumbents are far more likely to win than non-incumbents. Second, we see that higher spending by incumbents actually corresponds with a lower number of votes won. This may be due to higher spending by incumbents in more competitive elections. This supports Jacobson's findings.
+  
+```{r echo = FALSE, fig.align = "center"}
+PlotBrokenByIncumbent <- ggplot(FECData3Trim, aes(x = TotDisb, y = Gen_Votes)) +
+  geom_point(aes(color=factor(Winner)), size =1)+
+  geom_smooth(method = "loess")+
+  facet_wrap(~Incumbent)+
+  ggtitle("Campaign Spending and Votes Won in General Election")+
+  labs(y= "Votes Won", x = "Total Dollars Spent")
+PlotBrokenByIncumbent
+```
+
+Next, I run three regressions with votes won as the dependent variable and dollars spent as the independent variable of interest. The third regression is the most comprehensive and is used for this analysis. All dependent variables other than mean Democratic share of generic ballot, Libertarian party status, and Green party status interacted with Democratic share in prior election are highly statistically significant.
+
+Critically, we see that the total disbursement incumbent interaction is both negative and greater in magnitude than the (positive) total disbursement estimate. This means that with all controls in place, our model predicts that challengers face a generally positive marginal utility of spending while incumbents face a generally negative marginal utility of spending. This further supports Jacobson's findings concerning incumbency and spending.
+
+
+```{r kable, results = 'asis', echo = FALSE, fig.align="center"}
+VoteRegressions <- stargazer(VoteModel1,VoteModel2, VoteModel3, type = "html", title = "Dollars Spent-Votes Won", dep.var.labels = "Votes Won")
+
+
+```
+
+##Spending Share and Vote Share
+
+Next, I develop a novel picture of campaign finance by examining the relationship between share of candidate spending and share of popular vote. Share of candidate spending is defined as Candidate X's spending divided by the sum of all spending by candidates in Candidate X's election. Share of popular vote is defined as Candidate X's votes won divided by the sum of all votes cast in Candidate X's race. Below, we see the relationship between share of spending and vote share, fitted with a linear model.
+
+```{r echo = FALSE, fig.align="center"}
+VoteShareRelativeSpending <- ggplot(FECData3, aes(x = ShareofSpend, y = Gen_Vote_Pct)) +
+  geom_point(aes(color = factor(Winner)), size = 1)+
+  geom_smooth(method = "lm")+
+  ggtitle("Vote Share vs. Candidate Spending as Percentage of Total Spending in District")+
+  labs(y= "Share of Popular Vote", x = "Candidate Spending as Percentage of Total Spending In District") +
+  theme(plot.title = element_text(size = 12))
+VoteShareRelativeSpending
+```
+
+It is clear here that share of spending correlates very well with vote share. This seems to conflict with our topline results in the prior section, which show a severely diminishing marginal utility of spending. The relationship below shows steady returns to vote share with any x-unit increase in share of spending.
+
+These conclusions are further supported by a series of three controlling regressions. The first regression has a few rudimentary controls, while the second regression adds other candidate disbursements and the third regression adds a Party in Presidency dummy variable and a Democratic share in prior election variable. The third regression is the most comprehensive model and is primarily used for this analysis.
+
+```{r results = 'asis', echo = FALSE, fig.align="center"}
+SpendingShareRegressions <- stargazer(SpendingShareModel7, SpendingShareModel5, SpendingShareModel6, type = "html",title = "Spending Share-Vote Share", dep.var.labels = "Vote Share")
+```
+
+We see that many of these independent variables are significant. Most critically, share of spending, incumbent status, generic ballot, and all Republican party (party 1) interactions are significant at the 1% level. 
+
+Each spending share percentage point corresponds with a 0.348 percentage point increase in the popular vote. Incumbent status shifts the line up 0.032 percentage points, but unlike in the prior regressions does not interact with spending to a significant degree. Each percentage point of the 30-day generic polling average held by Democrats corresponds with a 0.508 percentage point boost for Democrats but a 0.893 percentage point decline for Republicans. Republican status shifts the line up 0.516 percentage points, indicating that Republicans tend to win more vote share than Democrats at an equal spending level. Each vote share percentage point that the Democrat won in the last election corresponds with a 0.129 percentage point boost for Democrats but a 0.214 percentage point decline for Republicans.
+
+The relationship between dollars spent and votes won would indicate that spending past the $1 million mark is irrational. However, spending share-vote share regressions convey a highly salient and very different conclusion. Marginal spending appears rational so long as it increases the candidate's share of spending.
+
+
+#Discussion
+I report two main findings. First, on a high level, I find a severely diminishing marginal relationship between campaign spending and votes won, with the curve flattening out just before the $1 million mark. For incumbents, the marginal utility of spending is negative. Second, I  observe a strong, positive, and highly linear relationship between candidates' share of spending within their district and their respective share of the vote. This effect is highly significant. I control for incumbency, generic ballot polling, party affiliation, opponent spending, and district partisanship, and I generate fixed effects for district and cycle.
+
+Framed in terms of my initial hypotheses, we see that all three hypotheses are supported by the data. The first hypothesis posits that candidates will face a diminishing marginal utility of campaign spending. When denominated in dollars spent and votes won, the marginal utility of campaign spending indeed appears to decline rapidly, approaching the zero point at around $1 million. The second hypothesis is also supported by the data. In my regressions, party affiliation, Democratic share in the prior election, and incumbent status are all statistically significant. Democratic share of generic ballot is only significant when interacted with party. Importantly, we observe that incumbents face a negative marginal utility of campaign spending. Finally, the third hypothesis asserts that the share of spending will correlate with vote share, but that the relationship will look different than in the first hypothesis. This is also supported. We observe a highly linear relationship between a candidate's share of spending and their ultimate share of the vote. 
+
+There is an important conflict between the results of the dollars spent-votes won analysis and the results of the spending share-vote share analysis. The dollars spent-votes won regression shows a positive marginal utility of spending for non-incumbents and a negative marginal utility of spending for incumbents. This supports Jacobson's view. However, the spending share-vote share regression shows a non-significant interaction between incumbent status and share of spending. This supports Green and Krasno's finding that, with the proper effects in place, incumbents can significantly affect their chances of winning by spending more.
+
+The dollars spent-votes won examines candidates on an individual basis, with opponent spending included as a covariate. In contrast, the spending share variable captures a candidate's spending in terms of total activity by candidates in the district, just as the vote share variable captures a candidate's results in terms of all results in the race. When results are expressed as vote share, a vote for Candidate A is mathematically largely offset by a vote for their opponent. Importantly, vote share is what ultimately matters for election results. When spending is expressed as spending share, a dollar spent by Candidate A is mathematically largely offset by a dollar spent by Candidate A's opponent. As such, I argue that the spending share-vote share comparison better captures the competitive dynamics at play. Consequently, I find a strong and linear relationship between spending share and vote share.
+
+The findings yielded by the two analyses can help explain political professionals' heavy focus on campaign fundraising and spending. The dollars spent-votes won comparison indicates that there is nearly zero marginal utility past roughly the first $1 million spent. This would indicate that the existing high levels of fundraising and spending are irrational. However, the spending share-vote share comparison suggests that a given candidate's marginal dollar spent is always spent rationally, so long that the candidate is increasing their share of district spending. By observing campaign spending through the lens of spending share and vote share, we can empirically examine and evaluate modern trends in campaign spending. While dollars spent may offer a diminishing marginal utility, candidates can always stand to benefit by outspending their opponent to the greatest extent possible.
+
+#References
+\bibliography{finalbibliography.bib}
