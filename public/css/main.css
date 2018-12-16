@@ -30,7 +30,7 @@ code {
 }
 
 .wrapper {
-  overflow: hidden;
+  overflow: auto;
   position: relative;
 }
 
@@ -143,8 +143,8 @@ code {
   width: 150px;
   margin: 50px auto;
   height: 1px;
-  overflow: hidden;
-  border: none;
+  overflow: auto;
+  border: auto;
   background: #e5e5e5;
 }
 
@@ -295,7 +295,7 @@ code {
     text-overflow: ellipsis;
     max-width: calc(100% - 120px);
     white-space: nowrap;
-    overflow: hidden;
+    overflow: auto;
   }
 
   .article-title {
