@@ -6,8 +6,8 @@
 <meta name="generator" content="Hugo 0.51" />
 
 
-<title>Campaign Finance Project - Brian J. Connor</title>
-<meta property="og:title" content="Campaign Finance Project - Brian J. Connor">
+<title>An Econometric Approach to Campaign Finance in the 21st Century - Brian J. Connor</title>
+<meta property="og:title" content="An Econometric Approach to Campaign Finance in the 21st Century - Brian J. Connor">
 
 
 
@@ -59,15 +59,1811 @@
   <article class="article">
     
 
-    <h1 class="article-title">Campaign Finance Project</h1>
+    <h1 class="article-title">An Econometric Approach to Campaign Finance in the 21st Century</h1>
 
     
 
     <div class="article-content">
       
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/jquery/jquery.min.js"></script>
+<link href="/rmarkdown-libs/datatables-css/datatables-crosstalk.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/datatables-binding/datatables.js"></script>
+<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/dt-core/js/jquery.dataTables.min.js"></script>
+<link href="/rmarkdown-libs/crosstalk/css/crosstalk.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/crosstalk/js/crosstalk.min.js"></script>
+<link href="/rmarkdown-libs/nouislider/jquery.nouislider.min.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/nouislider/jquery.nouislider.min.js"></script>
+<link href="/rmarkdown-libs/selectize/selectize.bootstrap3.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/selectize/selectize.min.js"></script>
 
 
+<div id="motivation" class="section level1">
+<h1>Motivation</h1>
+<p>Over the past twenty years, political campaign expenditures in the United States have skyrocketed. In 1998, these expenditures amounted to $1.6 billion. In 2018, this number is projected to hit $5.2 billion (Center for Responsive Politics). This effect is often credited to the controversial 2010 Citizens United decision, which effectively prohibited the United States government from restricting independent expenditures for political communications. However, this upward trend in expenditures began long before 2010. Importantly, we can infer from this pattern that political professionals see a direct causal relationship between campaign expenditures and electoral outcomes.</p>
+<p>Many prior studies of campaign spending are limited in scope, and often concern elections in the 1970s and 1980s. Additionally, the preponderance of existing scholarship focuses mainly on the effects of incumbency. In this study, I examine the shape and the form of the relationship between campaign expenditures and campaign efficacy with several sets of controls in place. I use a comprehensive set of data encompassing all House of Representatives elections between 2006 and 2016.</p>
+<p>I look to develop a comprehensive picture of campaign spending in the 21st century through two main avenues. First, I analyze the overall relationship between spending and voting as denominated in dollars and votes. Second, I examine competitive dynamics within districts through the analysis of candidate spending share, which is defined as the candidate’s spending divided by all spending by candidates in the district. In this branch of my analysis, I compare spending share to vote share.</p>
+</div>
+<div id="literature-review" class="section level1">
+<h1>Literature Review</h1>
+<p>The first body of scholarship consulted was the literature surrounding the relationship between campaign spending and electoral outcomes. This work has mainly focused on the effects of incumbency. In 1978, Gary Jacobson established that the marginal utility of campaign spending is different for incumbents than it is for challengers. Challengers often begin their campaigns in relative obscurity and can quickly boost their public profiles through high levels of campaign spending. Incumbents, on the other hand, can leverage their established political networks and extensive communication resources to develop name recognition and support outside of the formal campaign spending process. In 1985, Jacobson argues that “no matter how the data are analyzed, no matter what view one takes of the simultaneity problem, one finding remains undisturbed: incumbents gain nothing in the way of votes by spending money in campaigns.”</p>
+<p>This conclusion has been debated extensively. In their 1988 paper, Green and Krasno argue that Jacobson failed to control for challenger quality, pertinent interaction effects, and reciprocal causation. Green and Krasno incorporate prior incumbent spending as an exogenous variable to identify the incumbent’s general propensity to spend. Green and Krasno arrive at the conclusion that incumbents can readily affect their vote share by spending on the margin. In 1990, Jacobson responded, claiming that Green and Krasno’s model incorporates a high degree of multicollinearity, as their prior incumbent spending instrument correlates highly with the challenger political quality and expenditure variables in the model. Jacobson argues that the instrument for incumbent spending “is, in part, a proxy for party strength and challenger quality.” One goal of my study is to re-examine this debate in the context of the modern campaign finance landscape.</p>
+<p>I also rely on scholarship surrounding election forecasting. In 2014, Patrick Hummel and David Rothschild explored the usage of econometric modeling to forecast campaign outcomes. Specifically, they focus on presidential, gubernatorial, and senatorial races. Hummel and Rothschild use presidential approval ratings, incumbency, past election results, economic factors, and state ideology to predict electoral outcomes. They find that past election results, incumbency, and state-level economic factors can be used to predict electoral outcomes with a high degree of statistical significance. Consequently, I use both past election results and incumbency in my models. I exclude economic factors for two reasons. First, I was unable to acquire district-level personal income data in the timeframe of this project. Second, I follow the example of FiveThirtyEight’s 2018 House forecast, which did not include economic factors. Indirectly, voters’ economic attitudes and opinions are incorporated into the model through generic ballot polling. In my model, cycle-level fixed effects also likely pick up some of this noise.</p>
+<p>Based on FiveThirtyEight’s usage of generic ballot polling, I decided to include a generic ballot measure in my models. I use a variation of the technique described by Joseph Bafumi, Robert S. Erikson, and Christopher Wlezien in their 2008 paper, in which they average all generic ballot polls over the last 30 days of a given campaign, converting all polls to a percent Democratic of the two-party vote. For instance, 50-42 converts to 54.3% Democratic. I interact this variable with a factor variable for political party to capture the obvious differences in the ways that Democrat-favorable polling affects candidates of different parties.</p>
+</div>
+<div id="data-hypotheses-and-methods" class="section level1">
+<h1>Data, Hypotheses, and Methods</h1>
+<div id="data" class="section level2">
+<h2>Data</h2>
+<p>I use publicly available Federal Election Commission and generic ballot data for this study. The FEC data was downloaded directly from the FEC’s official website. The generic ballot data was downloaded from the Analyzing Polling and Election Data in R course on DataCamp and was initially compiled by G. Elliot Morris of The Economist. The initial candidate and disbursement dataset consisted of all candidates for the United States House of Representatives in elections between 2004 and 2016. Some exclusions were made. All candidates without vote counts or disbursement numbers were removed. Additionally, all candidates for office in United States territories were excluded, as these officials cannot vote on the House floor. There were also several duplicate records for individual candidates within the initial dataset. These were condensed or removed as necessary.</p>
+<p>In his 1991 study of incumbency and campaign spending, Alan Abramowitz included a variable for district partisanship. In this case, the variable described how the district voted in the previous presidential election. District-level presidential election data for the timeframe of my study exists but is not freely available. In future extensions of this study, I will attempt to procure this data. In the meantime, I chose to include a Previous Democratic Share variable, which shows the Democratic candidate’s share of the district vote in the previous election. The inclusion of this variable necessitated dropping all 2004 data from these analyses.</p>
+<p>In all, 5059 observations were included in the final analyses. Two detailed breakdowns of this data can be found below.</p>
+<div id="htmlwidget-1" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","caption":"<caption>Table 1: Data Summary by Cycle<\/caption>","data":[["2006","2008","2010","2012","2014","2016"],[833,819,936,857,832,772],[0,0,0,0,0,0],[344,342,409,392,384,356],[13,5,28,18,18,11],[9,14,5,10,7,4],[53,51,105,50,45,36],[396,391,389,372,383,378],[437,428,547,485,449,394],[912118.99,997897.65,1009211.49,1095252.07,999042.19,1057110.19],[670486.95,776813.33,791603.71,806826.38,743747.3,796970.36],[90579.74,138104.49,87931.51,131632.27,87526.65,149094.1],[94088,144368,91729.5,135694,87164.5,154802],[0.5414,0.5553,0.4648,0.5062,0.4705,0.4943]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th>Cycle<\/th>\n      <th>Number of Candidates<\/th>\n      <th>Democratic<\/th>\n      <th>Republican<\/th>\n      <th>Libertarian<\/th>\n      <th>Green<\/th>\n      <th>Other<\/th>\n      <th>Incumbent<\/th>\n      <th>Non-Incumbent<\/th>\n      <th>Average Disbursements<\/th>\n      <th>Median Disbursements<\/th>\n      <th>Average Votes<\/th>\n      <th>Median Votes<\/th>\n      <th>30 Day Generic Ballot Average (Dem. Share)<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8,9,10,11,12,13]}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<p>In the first table, the data are broken out by cycle and summarized into relevant spending and electoral outcome statistics. We see that the average and median candidate’s votes are highest in presidential election years, which makes intuitive sense given the well-documented trend of higher voter turnout in presidential years. On the disbursement side, we see that both median and average disbursements remained relatively consistent between 2006 and 2016. This consistency is present even in presidential years. Finally, we see that candidates of the opposition party tend to poll well, as Democrats held a generic ballot advantage in 2006 and 2008, and Republicans held an advantage in all Obama-era elections outside of 2012.</p>
+<p>The second table shows the data broken down by both party and cycle</p>
+<div id="htmlwidget-2" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-2">{"x":{"filter":"bottom","filterHTML":"<tr>\n  <td data-type=\"factor\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"width: 100%; display: none;\">\n      <select multiple=\"multiple\" style=\"width: 100%;\" data-options=\"[&quot;2006&quot;,&quot;2008&quot;,&quot;2010&quot;,&quot;2012&quot;,&quot;2014&quot;,&quot;2016&quot;]\"><\/select>\n    <\/div>\n  <\/td>\n  <td data-type=\"factor\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"width: 100%; display: none;\">\n      <select multiple=\"multiple\" style=\"width: 100%;\" data-options=\"[&quot;Democrat&quot;,&quot;Green&quot;,&quot;Libertarian&quot;,&quot;Other&quot;,&quot;Republican&quot;]\"><\/select>\n    <\/div>\n  <\/td>\n  <td data-type=\"integer\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none; position: absolute; width: 200px;\">\n      <div data-min=\"4\" data-max=\"414\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"integer\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none; position: absolute; width: 200px;\">\n      <div data-min=\"0\" data-max=\"251\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"integer\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none; position: absolute; width: 200px;\">\n      <div data-min=\"4\" data-max=\"192\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"integer\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none; position: absolute; width: 200px;\">\n      <div data-min=\"0\" data-max=\"235\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"integer\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none; position: absolute; width: 200px;\">\n      <div data-min=\"4\" data-max=\"256\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none; position: absolute; width: 200px;\">\n      <div data-min=\"5477\" data-max=\"1328089.19\" data-scale=\"2\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none; position: absolute; width: 200px;\">\n      <div data-min=\"4059\" data-max=\"1083791.5\" data-scale=\"2\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none; position: absolute; width: 200px;\">\n      <div data-min=\"6589.39\" data-max=\"162815.91\" data-scale=\"2\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none; position: absolute; width: 200px;\">\n      <div data-min=\"4047\" data-max=\"175965.5\" data-scale=\"1\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n<\/tr>","caption":"<caption>Table 2: Data Summary by Party and Cycle<\/caption>","data":[["2006","2006","2006","2006","2006","2008","2008","2008","2008","2008","2010","2010","2010","2010","2010","2012","2012","2012","2012","2012","2014","2014","2014","2014","2014","2016","2016","2016","2016","2016"],["Democrat","Green","Libertarian","Other","Republican","Democrat","Green","Libertarian","Other","Republican","Democrat","Green","Libertarian","Other","Republican","Democrat","Green","Libertarian","Other","Republican","Democrat","Green","Libertarian","Other","Republican","Democrat","Green","Libertarian","Other","Republican"],[414,9,13,53,344,407,14,5,51,342,389,5,28,105,409,387,10,18,50,392,378,7,18,45,384,365,4,11,36,356],[224,0,0,3,200,251,0,0,1,176,197,0,0,0,235,196,0,0,0,225,187,0,0,2,243,194,0,0,0,234],[190,9,13,50,144,156,14,5,50,166,192,5,28,105,174,191,10,18,50,167,191,7,18,43,141,171,4,11,36,122],[186,0,0,1,209,222,0,0,1,168,235,0,0,1,153,160,0,0,0,212,181,0,0,1,201,171,0,0,0,207],[228,9,13,52,135,185,14,5,50,174,154,5,28,104,256,227,10,18,50,180,197,7,18,44,183,194,4,11,36,149],[839199.19,25432.83,47132.75,101409.64,1180669.54,1084122.13,9046.76,14673.4,218993.32,1066291.77,1267335.25,5477,16952.02,122963.66,1071431.09,1045899.21,62455.73,12019.76,248323.09,1328089.19,982568.28,11119.48,11989.89,164936.94,1177282.5,977526.98,8927.03,14241.53,175198.79,1271888.2],[668992.4,12632,9817,17263.38,914909.77,857636.68,6586.19,14673,30231.58,874239.45,1063387.76,4059,8935.85,13475,915411.41,828811.32,5585.3,6901.5,14089.75,1083791.5,744686.27,10036.53,7777.5,13852.19,941289.16,768222.18,8753.1,6189.39,18100,971111.47],[97209.28,9514.56,7899.92,21450.34,98497.34,154228.43,13345.93,20372.4,19893.75,143372.28,95812.21,9346,6589.39,9205.05,107176.48,142689.22,8476.7,15086.17,19869.56,143465.12,88328.83,9771.71,6625.94,12661.04,100719.95,153058.19,16311.5,16934.91,28344.69,162815.91],[95012,6095,4417,5539,100566,151792,9695,11994,7478,148200.5,92393,7387,4891.5,4506,112369,136849,4047,10929,6074,154636,83264,9806,4628,6250,103688.5,145162,15616,15329,15253.5,175965.5]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th>Cycle<\/th>\n      <th>Party Name<\/th>\n      <th>Number of Candidates<\/th>\n      <th>Wins<\/th>\n      <th>Losses<\/th>\n      <th>Incumbent<\/th>\n      <th>Non-Incumbent<\/th>\n      <th>Average Disbursements<\/th>\n      <th>Median Disbusements<\/th>\n      <th>Average Votes<\/th>\n      <th>Median Votes<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[2,3,4,5,6,7,8,9,10]}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<p>In the second table, the data are further broken out by party, to show spending and outcome differences within cycles and between parties. There are some slight discrepancies from officially published election results here, mainly due to the analytically problematic observations deleted during the data cleaning. I continue to work through the data set to identify all potential inaccuracies. We see in this table that Republicans tend to outspend Democrats. For Democrats and Republicans, we also see that average vote and disbursement numbers tend to be higher than their respective medians, indicating a rightward skew.</p>
+</div>
+<div id="hypotheses" class="section level2">
+<h2>Hypotheses</h2>
+<p>Based on the literature reviewed, I test three hypotheses. The first two are outlined below, and serve to analyze Jacobson, Green, and Krasno’s work in the context of the modern campaign finance landscape.</p>
+<p>H1: With respect to campaign expenditures, both win probability and votes won will increase at a decreasing rate. That is, I predict a diminishing marginal utility of campaign expenditures.</p>
+<p>H2: The shape and form of this relationship, and consequently the point of zero marginal utility will change depending on the affiliation of the candidate, partisan makeup of the district, the national political climate, and challenger or incumbent status of the candidate.</p>
+<p>The third hypothesis relies on a different conception of the relationship between spending and votes. Specifically, I look to analyze the relationship between spending share and vote share. To my knowledge, this specific analysis has not been performed. Spending share is defined here as a candidate’s spending divided by the total spending of all candidates in that specific race.</p>
+<p>H3: Share of spending will correlate positively with vote share, but the shape of this relationship will be different than in H1. This is because opponent spending and vote share is more effectively controlled for within this design.</p>
+</div>
+<div id="methods" class="section level2">
+<h2>Methods</h2>
+<p>I test all three of these hypotheses with linear regression. My linear regressions incorporate fixed effects at the cycle and district level. This means that different intercept terms are generated based on each election’s location and year. Theoretically, these fixed effects should control for time-invariant differences between districts and location-invariant differences between years. In future extensions of this inquiry I plan on generating random effects, interacting specific independent variables with district and cycle to further control for differences between districts and years.</p>
+<p>I run three regressions analyzing the relationship between dollars spent and votes won, and I also run three regressions analyzing the relationship between share of spending and share of votes won. The third and final regression of each of these series is the most complete and is primarily used in my analyses.</p>
+<p>The equations for the two critical regressions are shown below. TotDisbM refers to candidate disbursements denominated in millions of dollars. ShareofSpend refers to a candidate’s share of spending. The incumbent variable is a dummy variable, with incumbents assigned the value of 1. MeanDemShareGenBallot is the mean Democratic share of all generic ballot polls conducted within 30 days of the election. Party is a five-level factor variable, with 0 representing Democrats, 1 representing Republicans, 2 representing Libertarians, 3 representing Green Party members, and 4 representing all other and independent candidates. OthDistDisbM refers to the sum of spending by other candidates competing in the race in question. PartyInPres is a dummy variable, with the value 1 being assigned to candidates in the same party as the sitting president. DemSharePrior refers to the vote share won by the Democratic candidate in the prior House election in the district in question.</p>
+<div id="dollars-spent-votes-won-regression" class="section level3">
+<h3>Dollars Spent-Votes Won Regression</h3>
+<p><span class="math inline">\(Votes Won = \beta_0 + \beta_{1} TotDisb + \beta_{2}Incumbent + \beta_{3}MeanDemShareGenBall + \beta_{4}Republican + \beta_{5}Libertarian + \beta_{6}Green + \beta_{7}Other\)</span> <span class="math inline">\(+ \beta_{8}OthDistDisbM +\beta_{9}PartyinPres + \beta_{10}DemSharePrior + \beta_{11}TotDisbM*Incumbent + \beta_{12}MeanDemShareGenBall*Republican\)</span> <span class="math inline">\(+ \beta_{13}MeanDemShareGenBall*Libertarian + \beta_{14}MeanDemShareGenBall*Green + \beta_{15}MeanDemShareGenBall*Other\)</span> <span class="math inline">\(+ \beta_{16}DemSharePrior*Republican + \beta_{17}DemSharePrior*Libertarian + \beta_{18}DemSharePrior*Green + \beta_{19}DemSharePrior*Other\)</span></p>
+</div>
+<div id="spending-share-vote-share-regression" class="section level3">
+<h3>Spending Share-Vote Share Regression</h3>
+<p><span class="math inline">\(Vote Share = \beta_0 + \beta_{1} ShareofSpend + \beta_{2}Incumbent + \beta_{3}MeanDemShareGenBall + \beta_{4}Republican + \beta_{5}Libertarian + \beta_{6}Green + \beta_{7}Other\)</span> <span class="math inline">\(+ \beta_{8}OthDistDisbM +\beta_{9}PartyinPres + \beta_{10}DemSharePrior + \beta_{11}TotDisbM*Incumbent + \beta_{12}MeanDemShareGenBall*Republican\)</span> <span class="math inline">\(+ \beta_{13}MeanDemShareGenBall*Libertarian + \beta_{14}MeanDemShareGenBall*Green + \beta_{15}MeanDemShareGenBall*Other\)</span> <span class="math inline">\(+ \beta_{16}DemSharePrior*Republican + \beta_{17}DemSharePrior*Libertarian + \beta_{18}DemSharePrior*Green + \beta_{19}DemSharePrior*Other\)</span></p>
+</div>
+</div>
+</div>
+<div id="results" class="section level1">
+<h1>Results</h1>
+<div id="dollars-and-votes" class="section level2">
+<h2>Dollars and Votes</h2>
+<p>In the following three charts, a reduced dataset is used. This dataset eliminates spending outliers to show a clearer picture of the relationships depicted. The fitted lines should not be affected, as they are fitted by locally estimated scatterplot smoothing models.</p>
+<p>In the first figure, we see the relationship between dollars spent and votes won. Clearly, this chart represents a severely declining marginal utility of campaign spending with respect to votes won. Although there are no controls in place here, the basic inference could be made that campaign spending past the $1 million mark may be irrational.</p>
+<p><img src="/Projects/CampaignFinanceProject_files/figure-html/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Below, I break out this relationship by cycle. Two trends jump out here. First, we see that the fitted line moves upward in presidential years. This makes intuitive sense. Presidential elections generally boast higher turnout than midterm elections. With a higher expected vote count, each dollar spent in presidential years corresponds to more votes won than each dollar spent in midterm elections. The second key takeaway here is that the plateau point is roughly the same in all years. In other words, the marginal utility of campaign spending approaches zero at roughly the same spending point in all six elections.</p>
+<p><img src="/Projects/CampaignFinanceProject_files/figure-html/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Finally, I separate non-incumbent candidates from incumbent candidates below. These data confirm Jacobson’s 1978 conclusion that the relationship between campaign spending and votes won behaves differently for incumbents than it does for non-incumbents. More specifically, two conclusions can be made here. First, incumbents are far more likely to win than non-incumbents. Second, we see that higher spending by incumbents actually corresponds with a lower number of votes won. This may be due to higher spending by incumbents in more competitive elections. This supports Jacobson’s findings.</p>
+<p><img src="/Projects/CampaignFinanceProject_files/figure-html/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Next, I run three regressions with votes won as the dependent variable and dollars spent as the independent variable of interest. The third regression is the most comprehensive and is used for this analysis. All dependent variables other than mean Democratic share of generic ballot, Libertarian party status, and Green party status interacted with Democratic share in prior election are highly statistically significant.</p>
+<p>Critically, we see that the total disbursement incumbent interaction is both negative and greater in magnitude than the (positive) total disbursement estimate. This means that with all controls in place, our model predicts that challengers face a generally positive marginal utility of spending while incumbents face a generally negative marginal utility of spending. This further supports Jacobson’s findings concerning incumbency and spending.</p>
+<table style="text-align:center">
+<caption>
+<strong>Dollars Spent-Votes Won</strong>
+</caption>
+<tr>
+<td colspan="4" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td colspan="3">
+<em>Dependent variable:</em>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td colspan="3" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td colspan="3">
+Votes Won
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(1)
+</td>
+<td>
+(2)
+</td>
+<td>
+(3)
+</td>
+</tr>
+<tr>
+<td colspan="4" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TotDisbM
+</td>
+<td>
+17,016.370<sup>***</sup>
+</td>
+<td>
+18,273.100<sup>***</sup>
+</td>
+<td>
+16,079.390<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(617.315)
+</td>
+<td>
+(619.950)
+</td>
+<td>
+(617.320)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Incumbent)1
+</td>
+<td>
+74,310.530<sup>***</sup>
+</td>
+<td>
+70,538.730<sup>***</sup>
+</td>
+<td>
+58,761.240<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(1,221.378)
+</td>
+<td>
+(1,251.112)
+</td>
+<td>
+(1,423.221)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+MeanDemShareGenBall
+</td>
+<td>
+385,816.500
+</td>
+<td>
+375,430.100
+</td>
+<td>
+375,208.200
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(350,810.600)
+</td>
+<td>
+(351,384.600)
+</td>
+<td>
+(348,734.100)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Party)1
+</td>
+<td>
+140,659.800<sup>***</sup>
+</td>
+<td>
+136,338.000<sup>***</sup>
+</td>
+<td>
+164,232.400<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(13,085.690)
+</td>
+<td>
+(12,946.310)
+</td>
+<td>
+(14,893.740)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Party)2
+</td>
+<td>
+58,974.810
+</td>
+<td>
+44,333.980
+</td>
+<td>
+42,993.390
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(52,140.260)
+</td>
+<td>
+(51,572.760)
+</td>
+<td>
+(53,451.680)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Party)3
+</td>
+<td>
+183,347.300<sup>***</sup>
+</td>
+<td>
+199,106.500<sup>***</sup>
+</td>
+<td>
+207,426.800<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(65,451.170)
+</td>
+<td>
+(64,734.190)
+</td>
+<td>
+(63,167.810)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Party)4
+</td>
+<td>
+93,746.650<sup>***</sup>
+</td>
+<td>
+109,880.600<sup>***</sup>
+</td>
+<td>
+103,858.900<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(25,250.570)
+</td>
+<td>
+(25,007.130)
+</td>
+<td>
+(25,159.650)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+OthDistDisbM
+</td>
+<td>
+</td>
+<td>
+-3,341.656<sup>***</sup>
+</td>
+<td>
+-3,075.836<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(291.251)
+</td>
+<td>
+(284.352)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(PartyInPres)1
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+-2,288.637<sup>*</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+(1,281.758)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+DemSharePrior
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+25,629.230<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+(3,200.957)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TotDisbM:factor(Incumbent)1
+</td>
+<td>
+-19,468.030<sup>***</sup>
+</td>
+<td>
+-20,110.060<sup>***</sup>
+</td>
+<td>
+-17,397.210<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(762.838)
+</td>
+<td>
+(756.323)
+</td>
+<td>
+(753.761)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+MeanDemShareGenBall:factor(Party)1
+</td>
+<td>
+-276,677.400<sup>***</sup>
+</td>
+<td>
+-268,738.200<sup>***</sup>
+</td>
+<td>
+-263,504.400<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(25,862.220)
+</td>
+<td>
+(25,585.280)
+</td>
+<td>
+(28,295.080)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+MeanDemShareGenBall:factor(Party)2
+</td>
+<td>
+-260,037.600<sup>**</sup>
+</td>
+<td>
+-225,954.100<sup>**</sup>
+</td>
+<td>
+-213,614.400<sup>**</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(105,493.400)
+</td>
+<td>
+(104,355.600)
+</td>
+<td>
+(104,788.300)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+MeanDemShareGenBall:factor(Party)3
+</td>
+<td>
+-493,405.900<sup>***</sup>
+</td>
+<td>
+-518,799.100<sup>***</sup>
+</td>
+<td>
+-540,511.400<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(126,353.900)
+</td>
+<td>
+(124,961.600)
+</td>
+<td>
+(124,013.800)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+MeanDemShareGenBall:factor(Party)4
+</td>
+<td>
+-319,266.000<sup>***</sup>
+</td>
+<td>
+-345,244.800<sup>***</sup>
+</td>
+<td>
+-330,475.100<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(50,217.830)
+</td>
+<td>
+(49,706.840)
+</td>
+<td>
+(48,887.690)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Party)1:DemSharePrior
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+-70,503.010<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+(4,336.888)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Party)2:DemSharePrior
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+-25,766.410<sup>*</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+(13,208.590)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Party)3:DemSharePrior
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+-11,566.560
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+(16,744.910)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Party)4:DemSharePrior
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+-18,199.660<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+(6,706.886)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Constant
+</td>
+<td>
+-113,101.400
+</td>
+<td>
+-102,705.700
+</td>
+<td>
+-107,754.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(177,709.100)
+</td>
+<td>
+(178,001.300)
+</td>
+<td>
+(176,688.600)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td colspan="4" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Observations
+</td>
+<td>
+5,049
+</td>
+<td>
+5,049
+</td>
+<td>
+5,049
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Log Likelihood
+</td>
+<td>
+-59,417.410
+</td>
+<td>
+-59,345.970
+</td>
+<td>
+-59,152.960
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Akaike Inf. Crit.
+</td>
+<td>
+118,866.800
+</td>
+<td>
+118,725.900
+</td>
+<td>
+118,351.900
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Bayesian Inf. Crit.
+</td>
+<td>
+118,971.200
+</td>
+<td>
+118,836.900
+</td>
+<td>
+118,502.000
+</td>
+</tr>
+<tr>
+<td colspan="4" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+<em>Note:</em>
+</td>
+<td colspan="3" style="text-align:right">
+<sup><em></sup>p&lt;0.1; <sup><strong></sup>p&lt;0.05; <sup></strong></em></sup>p&lt;0.01
+</td>
+</tr>
+</table>
+</div>
+<div id="spending-share-and-vote-share" class="section level2">
+<h2>Spending Share and Vote Share</h2>
+<p>Next, I develop a novel picture of campaign finance by examining the relationship between share of candidate spending and share of popular vote. Share of candidate spending is defined as Candidate X’s spending divided by the sum of all spending by candidates in Candidate X’s election. Share of popular vote is defined as Candidate X’s votes won divided by the sum of all votes cast in Candidate X’s race. Below, we see the relationship between share of spending and vote share, fitted with a linear model.</p>
+<p><img src="/Projects/CampaignFinanceProject_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>It is clear here that share of spending correlates very well with vote share. This seems to conflict with our topline results in the prior section, which show a severely diminishing marginal utility of spending. The relationship below shows steady returns to vote share with any x-unit increase in share of spending.</p>
+<p>These conclusions are further supported by a series of three controlling regressions. The first regression has a few rudimentary controls, while the second regression adds other candidate disbursements and the third regression adds a Party in Presidency dummy variable and a Democratic share in prior election variable. The third regression is the most comprehensive model and is primarily used for this analysis.</p>
+<table style="text-align:center">
+<caption>
+<strong>Spending Share-Vote Share</strong>
+</caption>
+<tr>
+<td colspan="4" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td colspan="3">
+<em>Dependent variable:</em>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td colspan="3" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td colspan="3">
+Vote Share
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(1)
+</td>
+<td>
+(2)
+</td>
+<td>
+(3)
+</td>
+</tr>
+<tr>
+<td colspan="4" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+ShareofSpend
+</td>
+<td>
+0.380<sup>***</sup>
+</td>
+<td>
+0.381<sup>***</sup>
+</td>
+<td>
+0.348<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.008)
+</td>
+<td>
+(0.008)
+</td>
+<td>
+(0.008)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Incumbent)1
+</td>
+<td>
+0.042<sup>***</sup>
+</td>
+<td>
+0.039<sup>***</sup>
+</td>
+<td>
+0.032<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.009)
+</td>
+<td>
+(0.010)
+</td>
+<td>
+(0.009)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+MeanDemShareGenBall
+</td>
+<td>
+0.533<sup>***</sup>
+</td>
+<td>
+0.533<sup>***</sup>
+</td>
+<td>
+0.508<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.057)
+</td>
+<td>
+(0.057)
+</td>
+<td>
+(0.060)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Party)1
+</td>
+<td>
+0.469<sup>***</sup>
+</td>
+<td>
+0.467<sup>***</sup>
+</td>
+<td>
+0.516<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.042)
+</td>
+<td>
+(0.042)
+</td>
+<td>
+(0.049)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Party)2
+</td>
+<td>
+-0.154
+</td>
+<td>
+-0.149
+</td>
+<td>
+-0.188
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.165)
+</td>
+<td>
+(0.165)
+</td>
+<td>
+(0.172)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Party)3
+</td>
+<td>
+0.037
+</td>
+<td>
+0.026
+</td>
+<td>
+0.048
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.208)
+</td>
+<td>
+(0.208)
+</td>
+<td>
+(0.204)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Party)4
+</td>
+<td>
+-0.118
+</td>
+<td>
+-0.126
+</td>
+<td>
+-0.100
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.080)
+</td>
+<td>
+(0.080)
+</td>
+<td>
+(0.081)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+OthDistDisbM
+</td>
+<td>
+</td>
+<td>
+0.001
+</td>
+<td>
+0.001
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.001)
+</td>
+<td>
+(0.001)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(PartyInPres)1
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+-0.016<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+(0.004)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+DemSharePrior
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+0.129<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+(0.010)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+ShareofSpend:factor(Incumbent)1
+</td>
+<td>
+0.003
+</td>
+<td>
+0.008
+</td>
+<td>
+0.002
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.013)
+</td>
+<td>
+(0.014)
+</td>
+<td>
+(0.013)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+MeanDemShareGenBall:factor(Party)1
+</td>
+<td>
+-0.977<sup>***</sup>
+</td>
+<td>
+-0.973<sup>***</sup>
+</td>
+<td>
+-0.893<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.083)
+</td>
+<td>
+(0.083)
+</td>
+<td>
+(0.093)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+MeanDemShareGenBall:factor(Party)2
+</td>
+<td>
+-0.201
+</td>
+<td>
+-0.213
+</td>
+<td>
+-0.111
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.334)
+</td>
+<td>
+(0.334)
+</td>
+<td>
+(0.337)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+MeanDemShareGenBall:factor(Party)3
+</td>
+<td>
+-0.582
+</td>
+<td>
+-0.561
+</td>
+<td>
+-0.575
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.401)
+</td>
+<td>
+(0.401)
+</td>
+<td>
+(0.400)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+MeanDemShareGenBall:factor(Party)4
+</td>
+<td>
+-0.263<sup>*</sup>
+</td>
+<td>
+-0.249
+</td>
+<td>
+-0.232
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.159)
+</td>
+<td>
+(0.159)
+</td>
+<td>
+(0.157)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Party)1:DemSharePrior
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+-0.214<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+(0.014)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Party)2:DemSharePrior
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+-0.089<sup>**</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+(0.042)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Party)3:DemSharePrior
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+-0.100<sup>*</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+(0.054)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+factor(Party)4:DemSharePrior
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+-0.140<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+(0.021)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Constant
+</td>
+<td>
+0.035
+</td>
+<td>
+0.032
+</td>
+<td>
+0.020
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.029)
+</td>
+<td>
+(0.029)
+</td>
+<td>
+(0.032)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td colspan="4" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Observations
+</td>
+<td>
+5,049
+</td>
+<td>
+5,049
+</td>
+<td>
+5,049
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Log Likelihood
+</td>
+<td>
+4,587.606
+</td>
+<td>
+4,582.786
+</td>
+<td>
+4,682.508
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Akaike Inf. Crit.
+</td>
+<td>
+-9,143.213
+</td>
+<td>
+-9,131.572
+</td>
+<td>
+-9,319.015
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Bayesian Inf. Crit.
+</td>
+<td>
+-9,038.782
+</td>
+<td>
+-9,020.614
+</td>
+<td>
+-9,168.896
+</td>
+</tr>
+<tr>
+<td colspan="4" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+<em>Note:</em>
+</td>
+<td colspan="3" style="text-align:right">
+<sup><em></sup>p&lt;0.1; <sup><strong></sup>p&lt;0.05; <sup></strong></em></sup>p&lt;0.01
+</td>
+</tr>
+</table>
+<p>We see that many of these independent variables are significant. Most critically, share of spending, incumbent status, generic ballot, and all Republican party (party 1) interactions are significant at the 1% level.</p>
+<p>Each spending share percentage point corresponds with a 0.348 percentage point increase in the popular vote. Incumbent status shifts the line up 0.032 percentage points, but unlike in the prior regressions does not interact with spending to a significant degree. Each percentage point of the 30-day generic polling average held by Democrats corresponds with a 0.508 percentage point boost for Democrats but a 0.893 percentage point decline for Republicans. Republican status shifts the line up 0.516 percentage points, indicating that Republicans tend to win more vote share than Democrats at an equal spending level. Each vote share percentage point that the Democrat won in the last election corresponds with a 0.129 percentage point boost for Democrats but a 0.214 percentage point decline for Republicans.</p>
+<p>The relationship between dollars spent and votes won would indicate that spending past the $1 million mark is irrational. However, spending share-vote share regressions convey a highly salient and very different conclusion. Marginal spending appears rational so long as it increases the candidate’s share of spending.</p>
+</div>
+</div>
+<div id="discussion" class="section level1">
+<h1>Discussion</h1>
+<p>I report two main findings. First, on a high level, I find a severely diminishing marginal relationship between campaign spending and votes won, with the curve flattening out just before the $1 million mark. For incumbents, the marginal utility of spending is negative. Second, I observe a strong, positive, and highly linear relationship between candidates’ share of spending within their district and their respective share of the vote. This effect is highly significant. I control for incumbency, generic ballot polling, party affiliation, opponent spending, and district partisanship, and I generate fixed effects for district and cycle.</p>
+<p>Framed in terms of my initial hypotheses, we see that all three hypotheses are supported by the data. The first hypothesis posits that candidates will face a diminishing marginal utility of campaign spending. When denominated in dollars spent and votes won, the marginal utility of campaign spending indeed appears to decline rapidly, approaching the zero point at around $1 million. The second hypothesis is also supported by the data. In my regressions, party affiliation, Democratic share in the prior election, and incumbent status are all statistically significant. Democratic share of generic ballot is only significant when interacted with party. Importantly, we observe that incumbents face a negative marginal utility of campaign spending. Finally, the third hypothesis asserts that the share of spending will correlate with vote share, but that the relationship will look different than in the first hypothesis. This is also supported. We observe a highly linear relationship between a candidate’s share of spending and their ultimate share of the vote.</p>
+<p>There is an important conflict between the results of the dollars spent-votes won analysis and the results of the spending share-vote share analysis. The dollars spent-votes won regression shows a positive marginal utility of spending for non-incumbents and a negative marginal utility of spending for incumbents. This supports Jacobson’s view. However, the spending share-vote share regression shows a non-significant interaction between incumbent status and share of spending. This supports Green and Krasno’s finding that, with the proper effects in place, incumbents can significantly affect their chances of winning by spending more.</p>
+<p>The dollars spent-votes won examines candidates on an individual basis, with opponent spending included as a covariate. In contrast, the spending share variable captures a candidate’s spending in terms of total activity by candidates in the district, just as the vote share variable captures a candidate’s results in terms of all results in the race. When results are expressed as vote share, a vote for Candidate A is mathematically largely offset by a vote for their opponent. Importantly, vote share is what ultimately matters for election results. When spending is expressed as spending share, a dollar spent by Candidate A is mathematically largely offset by a dollar spent by Candidate A’s opponent. As such, I argue that the spending share-vote share comparison better captures the competitive dynamics at play. Consequently, I find a strong and linear relationship between spending share and vote share.</p>
+<p>The findings yielded by the two analyses can help explain political professionals’ heavy focus on campaign fundraising and spending. The dollars spent-votes won comparison indicates that there is nearly zero marginal utility past roughly the first $1 million spent. This would indicate that the existing high levels of fundraising and spending are irrational. However, the spending share-vote share comparison suggests that a given candidate’s marginal dollar spent is always spent rationally, so long that the candidate is increasing their share of district spending. By observing campaign spending through the lens of spending share and vote share, we can empirically examine and evaluate modern trends in campaign spending. While dollars spent may offer a diminishing marginal utility, candidates can always stand to benefit by outspending their opponent to the greatest extent possible.</p>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
 
+<div id="refs" class="references">
+<div id="ref-Abramowitz1991">
+<p>Abramowitz, A.I. 1991. “Campaign Spending, and the Decline of Competition in U.S. House Elections.” <em>The Journal of Politics</em> 53 (1).</p>
+</div>
+<div id="ref-BafumiEriksonWlezien2008">
+<p>Bafumi, J., R.S. Erikson, and C. Wlezien. 2008. “Forecasting House Seats from Generic Congressional Polls.” <em>Elections and Exit Polling</em>.</p>
+</div>
+<div id="ref-Gerber2004">
+<p>Gerber, A.S. 2004. “Does Campaign Spending Work? Field Experiments Provide Evidence and Suggest New Theory.” <em>American Behavioral Scientist</em> 47 (5).</p>
+</div>
+<div id="ref-GoidelGross1994">
+<p>Goidel, R.K., and D.A. Gross. 1994. “A Systems Approach to Campaign Finance in U.S. House.” <em>American Politics Quarterly</em> 22 (2).</p>
+</div>
+<div id="ref-GreenKrasno1988">
+<p>Green, D.P., and J.S. Krasno. 1988. “Salvation for the Spendthrift Incumbent: Reestimating the Effects of Campaign Spending in House Elections.” <em>American Journal of Political Science</em> 32 (4).</p>
+</div>
+<div id="ref-HummelRothschild2014">
+<p>Hummel, P., and D. Rothschild. 2014. “Fundamental Models for Forecasting Elections at the State Level.” <em>Electoral Studies</em>.</p>
+</div>
+<div id="ref-Jacobson1990">
+<p>Jacobson, G.C. 1990. “The Effects of Campaign Spending in House Elections: New Evidence for Old Arguments.” <em>American Journal of Political Science</em> 34 (2).</p>
+</div>
+<div id="ref-DataCamp">
+<p>Morris, G.E. n.d. “Analyzing Election and Polling Data in R.” <a href="https://www.datacamp.com/courses/analyzing-election-and-polling-data-in-r" class="uri">https://www.datacamp.com/courses/analyzing-election-and-polling-data-in-r</a>; DataCamp.</p>
+</div>
+<div id="ref-FiveThirtyEight">
+<p>Silver, N. 2018. “How Fivethirtyeight’s House Model Works.” <a href="https://fivethirtyeight.com/features/2018-house-forecast-methodology/" class="uri">https://fivethirtyeight.com/features/2018-house-forecast-methodology/</a>; FiveThirtyEight.</p>
+</div>
+<div id="ref-OpenSecrets">
+<p>2018. <a href="https://www.opensecrets.org/news/2018/10/2018-midterm-record-breaking-5-2-billion/" class="uri">https://www.opensecrets.org/news/2018/10/2018-midterm-record-breaking-5-2-billion/</a>; Center for Responsive Politics.</p>
+</div>
+</div>
+</div>
 
     </div>
   </article>
@@ -92,6 +1888,9 @@
     
 
     
+<script src="/js/math-code.js"></script>
+<script async src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
 
     
   </body>
