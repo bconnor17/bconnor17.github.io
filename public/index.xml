@@ -40,12 +40,12 @@ When you click the Knit button a document will be generated that includes both c
     </item>
     
     <item>
-      <title>An Econometric Approach to Campaign Finance in the 21st Century</title>
-      <link>/campaignfinanceproject/</link>
+      <title>Campaign Finance Project</title>
+      <link>/projects/campaignfinanceproject/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>/campaignfinanceproject/</guid>
-      <description>Test</description>
+      <guid>/projects/campaignfinanceproject/</guid>
+      <description></description>
     </item>
     
     <item>
@@ -54,8 +54,9 @@ When you click the Knit button a document will be generated that includes both c
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/my_projects/</guid>
-      <description>This page will contain projects that I am working on.
-[[menu.main]] name = “An Econometric Approach to Campaign Finance in the 21st Century” url = “/campaignfinanceproject/”</description>
+      <description>This page will contain projects that I am working on.
+An Econometric Approach to Campaign Finance in the 21st Century
+</description>
     </item>
     
     <item>
