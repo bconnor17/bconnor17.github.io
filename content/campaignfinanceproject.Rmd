@@ -1,0 +1,8 @@
+---
+title: "An Econometric Approach to Campaign Finance in the 21st Century"
+author: "Brian J. Connor"
+date: "December 16, 2018"
+output: html_document
+---
+
+Test

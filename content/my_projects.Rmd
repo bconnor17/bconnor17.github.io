@@ -10,3 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 This page will contain projects that I am working on.
+
+[[menu.main]]
+  name = "An Econometric Approach to Campaign Finance in the 21st Century"
+  url = "/campaignfinanceproject/"
