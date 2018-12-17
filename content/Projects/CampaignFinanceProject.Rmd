@@ -297,9 +297,9 @@ I use publicly available Federal Election Commission and generic ballot data for
 	
 In his 1991 study of incumbency and campaign spending, Alan Abramowitz included a variable for district partisanship. In this case, the variable described how the district voted in the previous presidential election. District-level presidential election data for the timeframe of my study exists but is not freely available. In future extensions of this study, I will attempt to procure this data. In the meantime, I chose to include a Previous Democratic Share variable, which shows the Democratic candidate's share of the district vote in the previous election. The inclusion of this variable necessitated dropping all 2004 data from these analyses.
 
-In all, 5059 observations were included in the final analyses. Two detailed breakdowns of this data can be found below.
+In all, 5049 observations were included in the final analyses. Two detailed breakdowns of this data can be found below.
 
-```{r echo = FALSE, results = "asis", fig.align="center"}
+```{r echo = FALSE, results = "asis", fig.align="left"}
 
 datatable(SummaryOverall, class = 'cell-border stripe', options = list(dom = "t"), rownames = FALSE,
           caption = "Table 1: Data Summary by Cycle")
@@ -310,7 +310,7 @@ In the first table, the data are broken out by cycle and summarized into relevan
 
 The second table shows the data broken down by both party and cycle
 
-```{r echo = FALSE, results = "asis", fig.align="center"}
+```{r echo = FALSE, results = "asis", fig.align="left"}
 
 datatable(SummaryParty, class = 'cell-border stripe', filter = "bottom", rownames = FALSE,
           caption = "Table 2: Data Summary by Party and Cycle")
