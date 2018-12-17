@@ -308,8 +308,6 @@ datatable(SummaryOverall, class = 'cell-border stripe', options = list(dom = "t"
 
 In the first table, the data are broken out by cycle and summarized into relevant spending and electoral outcome statistics. We see that the average and median candidate's votes are highest in presidential election years, which makes intuitive sense given the well-documented trend of higher voter turnout in presidential years. On the disbursement side, we see that both median and average disbursements remained relatively consistent between 2006 and 2016. This consistency is present even in presidential years. Finally, we see that candidates of the opposition party tend to poll well, as Democrats held a generic ballot advantage in 2006 and 2008, and Republicans held an advantage in all Obama-era elections outside of 2012. 
 
-The second table shows the data broken down by both party and cycle
-
 ```{r echo = FALSE, results = "asis", fig.align="left"}
 
 datatable(SummaryParty, class = 'cell-border stripe', filter = "bottom", rownames = FALSE,
