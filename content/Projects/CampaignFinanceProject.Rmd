@@ -220,7 +220,7 @@ FECData32016 <- filter(FECData3, Cycle == 2016)
 SummaryOverall <- FECData3 %>%
   group_by(Cycle) %>%
   summarise(N = length(which(Incumbent == 0|1)),
-            Dem = length(which(PartyName == 0)),
+            Dem = length(which(Party == 0)),
             Rep = length(which(Party == 1)),
             Lib = length(which(Party == 2)),
             Grn = length(which(Party == 3)),
