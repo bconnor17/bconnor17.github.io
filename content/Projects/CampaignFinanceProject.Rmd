@@ -1,7 +1,7 @@
 ---
 title: "An Econometric Approach to Campaign Finance in the 21st Century"
 author: "Brian J. Connor"
-date: "December 8, 2018"
+date: "December 17, 2018"
 output: html_document
 bibliography: finalbibliography.bib
 nocite: '@*'
@@ -292,14 +292,14 @@ Based on FiveThirtyEight's usage of generic ballot polling, I decided to include
 
 ##Data
 
-I use publicly available Federal Election Commission and generic ballot data for this study. The FEC data was downloaded directly from the FEC's official website. The generic ballot data was downloaded from the Analyzing Polling and Election Data in R course on DataCamp and was initially compiled by G. Elliot Morris of The Economist.
+I use publicly available Federal Election Commission and generic ballot data for this study. The FEC data was downloaded directly from the FEC's official website. The generic ballot data was downloaded from the Analyzing Polling and Election Data in R course on DataCamp and was initially compiled by G. Elliott Morris of The Economist.
 	The initial candidate and disbursement dataset consisted of all candidates for the United States House of Representatives in elections between 2004 and 2016. Some exclusions were made. All candidates without vote counts or disbursement numbers were removed. Additionally, all candidates for office in United States territories were excluded, as these officials cannot vote on the House floor. There were also several duplicate records for individual candidates within the initial dataset. These were condensed or removed as necessary.
 	
 In his 1991 study of incumbency and campaign spending, Alan Abramowitz included a variable for district partisanship. In this case, the variable described how the district voted in the previous presidential election. District-level presidential election data for the timeframe of my study exists but is not freely available. In future extensions of this study, I will attempt to procure this data. In the meantime, I chose to include a Previous Democratic Share variable, which shows the Democratic candidate's share of the district vote in the previous election. The inclusion of this variable necessitated dropping all 2004 data from these analyses.
 
-In all, 5049 observations were included in the final analyses. Two detailed breakdowns of this data can be found below.
+In all, 5059 observations were included in the final analyses. Two detailed breakdowns of this data can be found below.
 
-```{r echo = FALSE, results = "asis", fig.align="left"}
+```{r echo = FALSE, results = "asis", fig.align="center"}
 
 datatable(SummaryOverall, class = 'cell-border stripe', options = list(dom = "t"), rownames = FALSE,
           caption = "Table 1: Data Summary by Cycle")
@@ -308,7 +308,9 @@ datatable(SummaryOverall, class = 'cell-border stripe', options = list(dom = "t"
 
 In the first table, the data are broken out by cycle and summarized into relevant spending and electoral outcome statistics. We see that the average and median candidate's votes are highest in presidential election years, which makes intuitive sense given the well-documented trend of higher voter turnout in presidential years. On the disbursement side, we see that both median and average disbursements remained relatively consistent between 2006 and 2016. This consistency is present even in presidential years. Finally, we see that candidates of the opposition party tend to poll well, as Democrats held a generic ballot advantage in 2006 and 2008, and Republicans held an advantage in all Obama-era elections outside of 2012. 
 
-```{r echo = FALSE, results = "asis", fig.align="left"}
+The second table shows the data broken down by both party and cycle
+
+```{r echo = FALSE, results = "asis", fig.align="center"}
 
 datatable(SummaryParty, class = 'cell-border stripe', filter = "bottom", rownames = FALSE,
           caption = "Table 2: Data Summary by Party and Cycle")
@@ -376,7 +378,7 @@ PlotBrokenByCycle <- ggplot(FECData3Trim, aes(x = TotDisb, y = Gen_Votes)) +
   geom_point(aes(color=factor(Winner)), size= 1)+
   geom_smooth(method = "loess")+
   facet_wrap(~Cycle)+
-  ggtitle("Campaign Spending and Votes Won in General Election")+
+  ggtitle("Votes Won vs. Total Dollars Spent")+
   labs(y= "Votes Won", x = "Total Dollars Spent")
 PlotBrokenByCycle
 ```
@@ -388,7 +390,7 @@ PlotBrokenByIncumbent <- ggplot(FECData3Trim, aes(x = TotDisb, y = Gen_Votes)) +
   geom_point(aes(color=factor(Winner)), size =1)+
   geom_smooth(method = "loess")+
   facet_wrap(~Incumbent)+
-  ggtitle("Campaign Spending and Votes Won in General Election")+
+  ggtitle("Votes Won vs. Total Dollars Spent, by Cycle")+
   labs(y= "Votes Won", x = "Total Dollars Spent")
 PlotBrokenByIncumbent
 ```
@@ -399,7 +401,7 @@ Critically, we see that the total disbursement incumbent interaction is both neg
 
 
 ```{r kable, results = 'asis', echo = FALSE, fig.align="center"}
-VoteRegressions <- stargazer(VoteModel1,VoteModel2, VoteModel3, type = "html", title = "Dollars Spent-Votes Won", dep.var.labels = "Votes Won")
+VoteRegressions <- stargazer(VoteModel1,VoteModel2, VoteModel3, type = "html", title = "Table 1: Dollars Spent-Votes Won", dep.var.labels = "Votes Won")
 
 
 ```
@@ -423,7 +425,7 @@ It is clear here that share of spending correlates very well with vote share. Th
 These conclusions are further supported by a series of three controlling regressions. The first regression has a few rudimentary controls, while the second regression adds other candidate disbursements and the third regression adds a Party in Presidency dummy variable and a Democratic share in prior election variable. The third regression is the most comprehensive model and is primarily used for this analysis.
 
 ```{r results = 'asis', echo = FALSE, fig.align="center"}
-SpendingShareRegressions <- stargazer(SpendingShareModel7, SpendingShareModel5, SpendingShareModel6, type = "html",title = "Spending Share-Vote Share", dep.var.labels = "Vote Share")
+SpendingShareRegressions <- stargazer(SpendingShareModel7, SpendingShareModel5, SpendingShareModel6, type = "html",title = "Table 2: Spending Share-Vote Share", dep.var.labels = "Vote Share")
 ```
 
 We see that many of these independent variables are significant. Most critically, share of spending, incumbent status, generic ballot, and all Republican party (party 1) interactions are significant at the 1% level. 
@@ -443,6 +445,14 @@ There is an important conflict between the results of the dollars spent-votes wo
 The dollars spent-votes won examines candidates on an individual basis, with opponent spending included as a covariate. In contrast, the spending share variable captures a candidate's spending in terms of total activity by candidates in the district, just as the vote share variable captures a candidate's results in terms of all results in the race. When results are expressed as vote share, a vote for Candidate A is mathematically largely offset by a vote for their opponent. Importantly, vote share is what ultimately matters for election results. When spending is expressed as spending share, a dollar spent by Candidate A is mathematically largely offset by a dollar spent by Candidate A's opponent. As such, I argue that the spending share-vote share comparison better captures the competitive dynamics at play. Consequently, I find a strong and linear relationship between spending share and vote share.
 
 The findings yielded by the two analyses can help explain political professionals' heavy focus on campaign fundraising and spending. The dollars spent-votes won comparison indicates that there is nearly zero marginal utility past roughly the first $1 million spent. This would indicate that the existing high levels of fundraising and spending are irrational. However, the spending share-vote share comparison suggests that a given candidate's marginal dollar spent is always spent rationally, so long that the candidate is increasing their share of district spending. By observing campaign spending through the lens of spending share and vote share, we can empirically examine and evaluate modern trends in campaign spending. While dollars spent may offer a diminishing marginal utility, candidates can always stand to benefit by outspending their opponent to the greatest extent possible.
+
+#Limitations and Next Steps
+I plan on continuing to analyze this data, pursuing both extensions of the present research inquiry and entirely new projects. One clear limitation in my present analysis is my lack of attention to the simultaneity problem. As Gary Jacobson explains in his 1990 paper, campaign donations are often made in response to electoral expectations. At the same time, campaign spending often translates to a higher probability of victory for challengers and a lower probability of victory for incumbents. This is because endangered incumbents often engage in more vigorous fundraising, and promising challengers are provided with funds by hopeful supporters. This simultaneous causation leads to some estimation problems, as it is difficult to parse out the direction of causality. In their 1994 paper, Goidel and Gross attempt to deal with this issue through a three-stage least squares design, modeling incumbent and challenger expenditures as endogenous variables through a simultaneous system of equations. My design does not directly address the simultaneity problem. As such, my estimates may be prone to systematic bias driven by simultaneous causality. However, in future extensions of this design, I look to incorporate an adapted version of Goidel and Gross' three-stage least squares design.
+
+Another extension that I may pursue is the incorporation of logistic regression into my analyses. In these regressions, the dependent variable would be the logged odds of victory. By directly analyzing the impact of campaign spending on probability of victory, I may be able to generate more intuitive and useful results than simply looking at votes and vote share.
+
+Finally, I look to dig more into the potential impact of Citizens United on campaign spending. While I've explored this in a roundabout way through my disaggregation of the dollars spent-votes won trend into the different cycles, I do not focus specifically on the impact of this decision. While I considered including a supplemental analysis of the impact of Citizens United into this project, I ultimately decided that such an important topic would be ill-suited as an analytical afterthought. Consequently, I will look to explore this in a future project.
+
 
 #References
 \bibliography{finalbibliography.bib}
